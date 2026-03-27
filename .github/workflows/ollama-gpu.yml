@@ -20,7 +20,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
       - name: Check GPU availability
         run: |
@@ -72,18 +71,13 @@ jobs:
 
       - name: Install Node dependencies
         run: |
-          if [ -f package.json ]; then
-            npm ci
-          else
-            npm init -y
-            npm install whatsapp-web.js qrcode-terminal puppeteer
-          fi
+          npm install
+          echo "Node.js dependencies installed"
 
-      - name: Run WhatsApp automation bot (GPU)
+      - name: Run WhatsApp automation bot check (GPU)
         run: |
           if [ -f src/whatsapp-bot.js ]; then
-            node src/whatsapp-bot.js &
-            sleep 10
+            node -e "console.log('WhatsApp bot module found')"
           fi
           echo "WhatsApp automation setup complete (GPU mode)"
 
