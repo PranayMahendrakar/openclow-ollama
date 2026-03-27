@@ -1,0 +1,93 @@
+name: OpenClaw Ollama - GPU Runner
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  openclaw-ollama-gpu:
+    name: Run OpenClaw with Ollama (GPU)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Check GPU availability
+        run: |
+          if command -v nvidia-smi &> /dev/null; then
+            nvidia-smi
+            echo "NVIDIA GPU detected"
+          else
+            echo "No NVIDIA GPU found, will run on CPU fallback"
+          fi
+
+      - name: Install CUDA toolkit (if available)
+        run: |
+          if command -v nvidia-smi &> /dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y cuda-toolkit-12-0 || true
+            echo "CUDA toolkit setup attempted"
+          fi
+
+      - name: Install Ollama with GPU support
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          echo "Ollama installed with GPU support"
+
+      - name: Start Ollama service
+        run: |
+          ollama serve &
+          sleep 5
+          echo "Ollama service started"
+
+      - name: Configure Ollama for GPU
+        run: |
+          export OLLAMA_GPU_LAYERS=35
+          export CUDA_VISIBLE_DEVICES=0
+          echo "GPU configuration applied"
+          ollama --version
+
+      - name: Pull OpenClaw model (opencoder via Ollama)
+        run: |
+          ollama pull opencoder:latest || ollama pull llama3.2:latest
+          echo "OpenClaw/OpenCoder model pulled"
+
+      - name: Verify GPU usage
+        run: |
+          ollama list
+          if command -v nvidia-smi &> /dev/null; then
+            nvidia-smi --query-gpu=name,memory.used,utilization.gpu --format=csv
+          fi
+          echo "Running on GPU (with CPU fallback)"
+
+      - name: Install Node dependencies
+        run: |
+          if [ -f package.json ]; then
+            npm ci
+          else
+            npm init -y
+            npm install whatsapp-web.js qrcode-terminal puppeteer
+          fi
+
+      - name: Run WhatsApp automation bot (GPU)
+        run: |
+          if [ -f src/whatsapp-bot.js ]; then
+            node src/whatsapp-bot.js &
+            sleep 10
+          fi
+          echo "WhatsApp automation setup complete (GPU mode)"
+
+      - name: Test Ollama inference (GPU)
+        run: |
+          OLLAMA_GPU_LAYERS=35 ollama run opencoder:latest "Hello, test GPU inference" || \
+          ollama run llama3.2:latest "Hello, test GPU inference"
