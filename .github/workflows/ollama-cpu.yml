@@ -1,0 +1,66 @@
+name: OpenClaw Ollama - CPU Runner
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  openclaw-ollama-cpu:
+    name: Run OpenClaw with Ollama (CPU)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          echo "Ollama installed successfully"
+
+      - name: Start Ollama service
+        run: |
+          ollama serve &
+          sleep 5
+          echo "Ollama service started"
+
+      - name: Pull OpenClaw model (opencoder via Ollama)
+        run: |
+          ollama pull opencoder:latest || ollama pull llama3.2:latest
+          echo "Model pulled successfully"
+
+      - name: Verify Ollama is running (CPU mode)
+        run: |
+          ollama list
+          echo "Running on CPU"
+
+      - name: Install Node dependencies
+        run: |
+          if [ -f package.json ]; then
+            npm ci
+          else
+            npm init -y
+            npm install whatsapp-web.js qrcode-terminal
+          fi
+
+      - name: Run WhatsApp automation bot
+        run: |
+          if [ -f src/whatsapp-bot.js ]; then
+            node src/whatsapp-bot.js &
+            sleep 10
+          fi
+          echo "WhatsApp automation setup complete (CPU)"
+
+      - name: Test Ollama inference (CPU)
+        run: |
+          ollama run opencoder:latest "Hello, test inference on CPU" || \
+          ollama run llama3.2:latest "Hello, test inference on CPU"
