@@ -1,0 +1,39 @@
+{
+  "name": "openclow-ollama",
+  "version": "1.0.0",
+  "description": "OpenClaw AI automation with Ollama LLM, GitHub Actions (CPU & GPU), and WhatsApp integration",
+  "main": "src/whatsapp-bot.js",
+  "scripts": {
+    "start": "node src/whatsapp-bot.js",
+    "start:gpu": "OLLAMA_GPU_LAYERS=35 node src/whatsapp-bot.js",
+    "start:cpu": "OLLAMA_GPU_LAYERS=0 node src/whatsapp-bot.js",
+    "ollama:install": "curl -fsSL https://ollama.com/install.sh | sh",
+    "ollama:pull": "ollama pull opencoder:latest || ollama pull llama3.2:latest",
+    "ollama:serve": "ollama serve",
+    "test": "node -e \"require('./src/whatsapp-bot.js'); console.log('Bot module loaded OK')\""
+  },
+  "keywords": [
+    "whatsapp",
+    "ollama",
+    "openclaw",
+    "opencoder",
+    "ai",
+    "automation",
+    "llm",
+    "gpu",
+    "cpu"
+  ],
+  "author": "PranayMahendrakar",
+  "license": "MIT",
+  "dependencies": {
+    "whatsapp-web.js": "^1.23.0",
+    "qrcode-terminal": "^0.12.0",
+    "puppeteer": "^21.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
